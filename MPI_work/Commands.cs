@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MPI;
 using MPI_work.Entities;
 namespace MPI_work
 {
@@ -128,6 +129,126 @@ namespace MPI_work
                             .Take(partFeedback)
                             .ToList()
                 };
+            }
+        }
+        // Функция для просмотра 25 лучших и 25 худших магазинов
+        public static List<Shop> GetShops(LocalDb localDb)
+        {
+            // Возвращаем список магазинов
+            return localDb.ShopList.OrderBy(p => p.Rating).ToList();
+        }
+        // Функция для написания отзыва магазину по Id
+        public static void Feetback(int shopId, int rating, string? feet)
+        {
+            using (var db = new AppDbContext())
+            {
+                // Генерация экземпляра случайного пользователя
+                User user = new User
+                {
+                    FullName = Faker.Name.FullName(),
+                    Age = Faker.RandomNumber.Next(1, 65)
+                };
+                // Добавить сгенерированного пользователя в базу данных
+                db.Users.Add(user);
+                // Зафиксировать изменения в БД
+                db.SaveChanges();
+                
+                // Экземпляр магазина, которому выставлен отзыв
+                Shop? shop = db.Shops.Where(p => p.ShopId == shopId).FirstOrDefault();
+                // Выйти из функции, если такого магазина нет
+                if (shop == null) return;
+                // Добавить в базу данных новый отзыв от случайного пользователя
+                db.Feedbacks.Add(new Feedback
+                {
+                    UserId = user.UserId,
+                    ShopId = shopId,
+                    Rating = rating,
+                    UserFeedback = feet
+                });
+                // Добавить число отзывов у магазина
+                shop.NumberReviews = shop.NumberReviews + 1;
+                // Обновить рейтинг магазина
+                shop.Rating = (decimal)(db.Feedbacks.Where(p => p.ShopId == shop.ShopId).Sum(p => p.Rating) + rating) / shop.NumberReviews;
+                // Зафиксировать изменения в БД
+                db.SaveChanges();
+            }
+        }
+        // Функция для вывода отзывов о магазине по Id
+        public static List<Feedback> GetFeetbacks(LocalDb localDb, int shopId)
+        {
+            // Вернуть список отзывов
+            return localDb.FeedbackList.Where(p => p.ShopId == shopId).ToList();
+        }
+        // Функция для вывода всех отзывов пользователя по Id
+        public static List<Feedback> GetUserFeetbacks(LocalDb localDb, int userId)
+        {
+            // Вернуть список отзывов
+            return localDb.FeedbackList.Where(p => p.UserId == userId).ToList();
+        }
+        // Удалить магазин из БД со всеми отзывами
+        public static void DeleteShop(LocalDb localDb, DeletedData deletedDb, int shopId)
+        {
+            // Удаление из локальной БД отзывов
+            foreach (var feetback in localDb.FeedbackList.Where(p => p.ShopId == shopId).ToList())
+                localDb.FeedbackList.Remove(feetback);
+            // Получить экземпляр магазина
+            Shop? shop = localDb.ShopList.Where(p => p.ShopId == shopId).FirstOrDefault();
+            // Если магазина не нашлось, выйти
+            if (shop == null) return;
+            // Удаление из локальной БД магазина
+            localDb.ShopList.Remove(shop);
+            // Добавить в список удаленных
+            deletedDb.DeletedShopList.Add(shop);
+        }
+
+        // Удалить отзыв по Id
+        public static void DeleteFeetback(int feetbackId)
+        {
+            using (var db = new AppDbContext())
+            {
+                // Получить экземпляр отзыва
+                Feedback? feetback = db.Feedbacks.Include(p => p.Shop).Where(p => p.FeedbackId == feetbackId).FirstOrDefault();
+                // Если отзыва не нашлось, выйти
+                if (feetback == null) return;
+
+                // Удалить из базы отзыв
+                db.Feedbacks.Remove(feetback);
+                db.SaveChanges();
+                // Добавить число отзывов у магазина
+                feetback.Shop.NumberReviews = feetback.Shop.NumberReviews - 1;
+                if (feetback.Shop.NumberReviews == 0)
+                    feetback.Shop.Rating = 0;
+                else
+                    // Обновить рейтинг магазина
+                    feetback.Shop.Rating = (decimal)(db.Feedbacks.Where(p => p.ShopId == feetback.Shop.ShopId).Sum(p => p.Rating)) / feetback.Shop.NumberReviews;
+                // Зафиксировать изменения в БД
+                db.SaveChanges();
+            }
+        }
+        // Обновить базу данных на сервере
+        public static void UpdateDb(LocalDb localDb, DeletedData deletedDb)
+        {
+            using (var db = new AppDbContext())
+            {
+                // Удаление в БД локально удаленных магазинов 
+                foreach (var shop in deletedDb.DeletedShopList)
+                    db.Shops.Remove(shop);
+                // Удаление в БД локально удаленных пользователей
+                foreach (var user in deletedDb.DeletedUserList)
+                    db.Users.Remove(user);
+                // Удаление в БД локально удаленных отзывов
+                foreach (var feetback in deletedDb.DeletedFeedbackList)
+                    db.Feedbacks.Remove(feetback);
+
+                // Обновление в БД данных магазинов
+                db.Shops.UpdateRange(localDb.ShopList);
+                // Обновление в БД данных пользователей
+                db.Users.UpdateRange(localDb.UserList);
+                // Обновление в БД данных отзывов
+                db.Feedbacks.UpdateRange(localDb.FeedbackList);
+
+                // Зафиксировать изменения в БД
+                db.SaveChanges();
             }
         }
     }
