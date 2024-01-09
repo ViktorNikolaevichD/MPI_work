@@ -7,8 +7,8 @@
         // Адрес магазина
         public string Address { get; set; }
         // Количество отзывов
-        public int NumberReviews { get; set; }
+        public int NumberReviews { get; set; } = 0;
         // Средняя
-        public float Rating { get; set; }
+        public decimal Rating { get; set; } = 0;
     }
 }

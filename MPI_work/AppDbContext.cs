@@ -1,16 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MPI;
-//using MPI_work.Entities;
-using static System.Net.Mime.MediaTypeNames;
+using MPI_work.Entities;
 
 namespace MPI_work
 {
     internal class AppDbContext : DbContext
     {
-        // Таблицы для работы
-
-        // Таблица пользователей ПРИМЕР
-        //public DbSet<User> Users { get; set; }
+        // Таблица пользователей
+        public DbSet<User> Users { get; set; }
+        // Таблица магазинов
+        public DbSet<Shop> Shops { get; set; }
+        // Таблица отзывов
+        public DbSet<Feedback> Feedbacks { get; set; }
 
         public AppDbContext()
         {
@@ -21,7 +21,7 @@ namespace MPI_work
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             // Строка подключения к базе данных
-            optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=DbCourseWork;Trusted_Connection=True;");
+            optionsBuilder.UseSqlServer("Server=localhost;Database=FeedBacksDb;Trusted_Connection=True;Encrypt=False;");
         }
     }
 }
