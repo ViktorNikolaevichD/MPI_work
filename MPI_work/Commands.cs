@@ -70,6 +70,7 @@ namespace MPI_work
                 db.SaveChanges();
             }
         }
+
         // Генерация данных в БД
         public static void GenerateData(int count)
         {
@@ -90,6 +91,7 @@ namespace MPI_work
                 db.SaveChanges();
             }
         }
+
         // Функция загрузки базы данных
         public static LocalDb LoadingDb(int rank, int size)
         {
@@ -131,12 +133,14 @@ namespace MPI_work
                 };
             }
         }
+
         // Функция для просмотра 25 лучших и 25 худших магазинов
         public static List<Shop> GetShops(LocalDb localDb)
         {
-            // Возвращаем список магазинов
-            return localDb.ShopList.OrderBy(p => p.Rating).ToList();
+            // Возвращаем список магазинов 
+            return localDb.ShopList.ToList();
         }
+
         // Функция для написания отзыва магазину по Id
         public static void Feetback(int shopId, int rating, string? feet)
         {
@@ -173,18 +177,22 @@ namespace MPI_work
                 db.SaveChanges();
             }
         }
+
         // Функция для вывода отзывов о магазине по Id
         public static List<Feedback> GetFeetbacks(LocalDb localDb, int shopId)
         {
             // Вернуть список отзывов
             return localDb.FeedbackList.Where(p => p.ShopId == shopId).ToList();
         }
+
         // Функция для вывода всех отзывов пользователя по Id
         public static List<Feedback> GetUserFeetbacks(LocalDb localDb, int userId)
         {
             // Вернуть список отзывов
             return localDb.FeedbackList.Where(p => p.UserId == userId).ToList();
         }
+
+
         // Удалить магазин из БД со всеми отзывами
         public static void DeleteShop(LocalDb localDb, DeletedData deletedDb, int shopId)
         {
@@ -225,6 +233,7 @@ namespace MPI_work
                 db.SaveChanges();
             }
         }
+
         // Обновить базу данных на сервере
         public static void UpdateDb(LocalDb localDb, DeletedData deletedDb)
         {
