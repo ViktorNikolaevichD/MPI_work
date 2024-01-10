@@ -83,7 +83,7 @@ namespace MPI_work
                                         comm.Send(0, i, 0);
                                 }
                                 // Установить остаточное значение строк для генерации
-                                countRank = count > 0 ? count : 0;
+                                countRank = count > -1 ? count : count + countRank;
                                 // Генерация магазинов
                                 Commands.GenerateData(countRank);
                             }
@@ -323,6 +323,7 @@ namespace MPI_work
                             }
                             // Все процессы дожидаются удаления отзыва
                             comm.Barrier();
+
                             // Обновлени локальной БД
                             localDb = Commands.LoadingDb(comm.Rank, comm.Size);
                             // Ожидание окончания обновления локальной БД
@@ -342,8 +343,6 @@ namespace MPI_work
                             }
                             // Обновление БД
                             Commands.UpdateDb(localDb, deletedDb);
-                            // Очистить базу удаленных объектов
-                            deletedDb = new DeletedData();
                             // Ожидание окончания удаления
                             comm.Barrier();
                             if (comm.Rank == 0)

@@ -258,6 +258,9 @@ namespace MPI_work
 
                 // Зафиксировать изменения в БД
                 db.SaveChanges();
+
+                // Очистить базу удаленных объектов
+                deletedDb = new DeletedData();
             }
         }
     }
