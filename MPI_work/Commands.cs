@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MPI;
 using MPI_work.Entities;
 namespace MPI_work
 {
