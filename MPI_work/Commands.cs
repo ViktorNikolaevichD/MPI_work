@@ -60,6 +60,8 @@ namespace MPI_work
             {
                 // Добавить список пользователей в серверную БД
                 db.Users.AddRange(users);
+                // Зафиксировать изменения в БД
+                db.SaveChanges();
                 // Обновить данные о магазина в БД
                 db.Shops.UpdateRange(shops);
                 // Добавить отзывы в БД
